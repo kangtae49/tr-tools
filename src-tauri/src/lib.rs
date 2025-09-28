@@ -1,6 +1,7 @@
 mod route;
 mod err;
 
+use tauri::{Manager, WindowEvent};
 use route::router;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -26,6 +27,19 @@ pub fn run() {
                     .body(body.into_bytes())
                     .unwrap()
             })
+        })
+        .setup(|app| {
+            let window = app.get_window("main").unwrap();
+            window.on_window_event(move |event| {
+                if let WindowEvent::CloseRequested { api: _, .. } = event {
+                    println!("CloseRequested");
+                    // api.prevent_close();
+                }
+                if let WindowEvent::Destroyed = event {
+                    println!("Destroyed")
+                }
+            });
+            Ok(())
         })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
