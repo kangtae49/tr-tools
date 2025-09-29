@@ -96,7 +96,7 @@ function AudioView() {
   return (
     <div className="audio-player">
       <audio key={playPath} ref={ref} controls autoPlay={false}>
-        <source src={`/local/file/${encodeURIComponent(playPath)}`} />
+        <source src={`http://local.localhost/file/${encodeURIComponent(playPath)}`} />
       </audio>
     </div>
   )
