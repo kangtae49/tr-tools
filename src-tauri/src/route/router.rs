@@ -1,12 +1,12 @@
-use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
+use crate::err::Error;
+use crate::err::Error::ApiError;
 use http::header;
 use matchit::{Params, Router};
+use std::fs::File;
+use std::io::{Read, Seek, SeekFrom};
+use std::sync::Arc;
 use tauri::http::{Request, Response};
 use urlencoding;
-use std::sync::Arc;
-use crate::err::{Error};
-use crate::err::Error::{ApiError};
 
 const MAX_FILE_SIZE: u64 = 50 * 1024 * 1024;
 
@@ -29,8 +29,6 @@ const MAX_FILE_SIZE: u64 = 50 * 1024 * 1024;
 //     })
 // ```
 
-
-
 pub fn build_router() -> Result<Arc<Router<&'static str>>, Error> {
     let mut router: Router<&str> = Router::new();
 
@@ -39,7 +37,6 @@ pub fn build_router() -> Result<Arc<Router<&'static str>>, Error> {
     Ok(Arc::new(router))
 }
 
-
 pub fn route(router: &Router<&str>, req: Request<Vec<u8>>) -> Result<Response<Vec<u8>>, Error> {
     let path = req.uri().path();
     println!("path: {:?}", path);
@@ -47,7 +44,9 @@ pub fn route(router: &Router<&str>, req: Request<Vec<u8>>) -> Result<Response<Ve
         println!("found");
         match (&req.method().as_str(), matched.value) {
             (&"GET", &"file") => file_get(&req, &matched.params),
-            _ => Ok(Response::builder().status(405).body("Method Not Allowed".into())?),
+            _ => Ok(Response::builder()
+                .status(405)
+                .body("Method Not Allowed".into())?),
         }
     } else {
         println!("not found");
@@ -74,7 +73,6 @@ fn file_get(req: &Request<Vec<u8>>, params: &Params) -> Result<Response<Vec<u8>>
         Err(_) => 0,
     };
 
-
     if let Some(range_header) = req.headers().get(header::RANGE) {
         if let Ok(range_str) = range_header.to_str() {
             if let Some((start, end)) = parse_range(range_str, file_len) {
@@ -85,8 +83,10 @@ fn file_get(req: &Request<Vec<u8>>, params: &Params) -> Result<Response<Vec<u8>>
                     if file.read_exact(&mut buffer).is_ok() {
                         return Ok(Response::builder()
                             .status(206)
-                            .header(header::CONTENT_RANGE,
-                                    format!("bytes {}-{}/{}", start, end, file_len))
+                            .header(
+                                header::CONTENT_RANGE,
+                                format!("bytes {}-{}/{}", start, end, file_len),
+                            )
                             .header(header::CONTENT_LENGTH, buffer.len().to_string())
                             .header(header::ACCEPT_RANGES, "bytes")
                             .body(buffer)?);
@@ -104,12 +104,13 @@ fn file_get(req: &Request<Vec<u8>>, params: &Params) -> Result<Response<Vec<u8>>
             .header(header::CONTENT_LENGTH, buffer.len().to_string())
             .header(header::ACCEPT_RANGES, "bytes")
             .body(buffer)?)
-
     } else {
-        Err(ApiError(format!("Internal Server Error: FILE_SIZE {} (LIMIT {})", file_len, MAX_FILE_SIZE)))
+        Err(ApiError(format!(
+            "Internal Server Error: FILE_SIZE {} (LIMIT {})",
+            file_len, MAX_FILE_SIZE
+        )))
         // Err(Error::Http(format!("Internal Server Error: FILE_SIZE {} (LIMIT {})", file_len, MAX_FILE_SIZE)))
     }
-
 }
 
 fn parse_range(range: &str, file_len: u64) -> Option<(u64, u64)> {

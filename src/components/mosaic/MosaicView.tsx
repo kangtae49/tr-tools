@@ -7,7 +7,11 @@ import 'react-mosaic-component/react-mosaic-component.css'
 import '@blueprintjs/core/lib/css/blueprint.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 import {WinKey, WinType, getWinType, useMosaicStore} from "./mosaicStore.ts";
-
+import MusicPlayerView from "@/components/media/music_player/MusicPlayerView.tsx";
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
+import {
+  faMusic
+} from '@fortawesome/free-solid-svg-icons'
 interface TitleInfo {
   title: string,
   icon: JSX.Element,
@@ -27,12 +31,12 @@ const ELEMENT_MAP: Record<WinType, TitleInfo> = {
   },
   "music-player": {
     title: "Music Player",
-    icon: <div />,
-    view: <HelpView/>
+    icon: <div><Icon icon={faMusic} /></div>,
+    view: <MusicPlayerView />
   },
   "movie-player": {
     title: "Movie Player",
-    icon: <div />,
+    icon: <div><Icon icon={faMusic} /></div>,
     view: <HelpView/>
   },
   "monaco": {
@@ -59,7 +63,7 @@ export function MosaicView() {
   } = useMosaicStore();
 
   useEffect(() => {
-    setMosaicValue("about")
+    setMosaicValue("music-player")
   }, [])
 
   return (

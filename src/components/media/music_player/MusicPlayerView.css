@@ -1,0 +1,231 @@
+
+.music-player {
+    display: flex;
+    flex-direction: column;
+    --top-height: 60px;
+    --first-height: 60px;
+    --icon-size: 24px;
+    --icon-size-middle: 35px;
+    --icon-font-size: 17px;
+    --icon-font-size-middle: 35px;
+    --icon-color: #f4a261;
+    --icon-color-inactive: #d9d9d9;
+    --icon-hover-scale: scale(1.2);
+}
+
+.music-player .top {
+    flex: 0 0 var(--top-height);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d9d9d9;
+    box-sizing: border-box;
+}
+.music-player .top .row.first {
+    display: flex;
+    justify-content: center; align-items: center;
+    padding: 0 5px;
+    height: var(--first-height);
+    box-sizing: border-box;
+}
+
+.music-player .top .row.first .icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    display: flex; justify-content: center; align-items: center;
+    box-sizing: border-box;
+}
+
+.music-player .top .row.first .icon.middle {
+    width: var(--icon-size-middle);
+    height: var(--icon-size-middle);
+    display: flex; justify-content: center; align-items: center;
+    box-sizing: border-box;
+}
+
+.music-player .top .row.first .slider {
+    height: var(--icon-size);
+    max-width: 100px;
+    display: flex; justify-content: center; align-items: center;
+}
+.music-player .top .row.first .slider input {
+    width: 100%;
+    cursor: pointer;
+}
+.music-player .top .row.first .slider input:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+}
+
+.music-player .top .row.first .center {
+    margin: 0 10px 0 10px;
+    padding: 5px 15px;
+    border: 1px solid #d9d9d9;
+    /*background-color: #d1d0d0;*/
+    border-radius: 15px;
+    box-sizing: border-box;
+
+    display: flex;
+    justify-content: center; align-items: center;
+}
+
+.music-player .top .row.second {
+    display: flex;
+    padding: 0 5px;
+    justify-content: center; align-items: center;
+}
+.music-player .top .row.second .title {
+    flex: 0 0 200px;
+    text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.music-player .top .row.second .tm {
+    flex: 0 0 50px;
+    text-align: center; white-space: nowrap;
+}
+
+.music-player .top .row.second .slider {
+    height: var(--icon-size);
+    display: flex; justify-content: center; align-items: center;
+    flex: 1;
+}
+.music-player .top .row.second .slider input {
+    width: 100%;
+    cursor: pointer;
+}
+.music-player .top .row.second .slider input:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+}
+
+input[type=range] {
+    -webkit-appearance: none;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    height: 7px;
+    background: #d9d9d9;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 21px;
+    height: 21px;
+    background: #f4a261;
+    border-radius: 50%;
+    margin-top: -7px;
+}
+.music-player .play-list {
+    flex: 1;
+    height: 100%;
+}
+
+.music-player .play-list .row {
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    cursor: pointer;
+}
+
+.music-player .play-list .row.selected {
+    background-color: #d9d9d9;
+}
+
+.music-player .play-list .row .title {
+    display: flex;
+    inset: 0;
+    transition: background 0.5s ease;
+}
+.music-player .play-list .row .title.playing {
+    display: flex;
+    background: linear-gradient(270deg, #ff6ec4, #7873f5, #4ade80, #facc15);
+    background-size: 400% 400%;
+    animation: gradientShift 10s ease infinite;
+}
+
+.audio-player {
+    display: none;
+}
+.second {
+    inset: 0;
+    background: white;
+    transition: background 0.5s ease;
+}
+.second.playing {
+    background: linear-gradient(270deg, #ff6ec4, #7873f5, #4ade80, #facc15);
+    background-size: 400% 400%;
+    animation: gradientShift 10s ease infinite;
+}
+@keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.badge-wrap{
+    position: relative;
+    display: inline-block;
+}
+
+.badge{
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(35%, -35%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    min-width: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ea7a9c;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    pointer-events: none;
+    user-select: none;
+}
+
+.fa-folder { color: var(--icon-color); font-size: var(--icon-font-size); }
+.fa-folder:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-folder-plus { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-folder-plus:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-trash-can { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-trash-can:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-trash-can.inactive { color: var(--icon-color-inactive)}
+
+.fa-circle-play { color: var(--icon-color); font-size: var(--icon-font-size-middle);}
+.fa-circle-play:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-circle-pause { color: var(--icon-color); font-size: var(--icon-font-size-middle);}
+.fa-circle-pause:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-backward-step { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-backward-step:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-forward-step { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-forward-step:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-shuffle { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-shuffle:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-shuffle.inactive { color: var(--icon-color-inactive)}
+.fa-repeat { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-repeat:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-arrows-spin { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-arrows-spin:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-rotate-right { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-rotate-right:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-minus { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-minus:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+
+.fa-book-medical { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-book-medical:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-floppy-disk { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-floppy-disk:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+
+.fa-volume-high { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-volume-high:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-volume-xmark { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-volume-xmark:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+
+.fa-circle-xmark { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-circle-xmark:hover { transform: var(--icon-hover-scale); cursor: pointer;}
+.fa-music { color: var(--icon-color); font-size: var(--icon-font-size);}
+.fa-music:hover { transform: var(--icon-hover-scale);}

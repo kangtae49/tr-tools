@@ -1,4 +1,3 @@
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Err {0}")]
@@ -13,6 +12,10 @@ pub enum Error {
     Matchit(#[from] matchit::InsertError),
     #[error(transparent)]
     Http(#[from] http::Error),
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+    #[error(transparent)]
+    Env(#[from] std::env::VarError),
 }
 
 #[derive(serde::Serialize)]
@@ -23,8 +26,10 @@ pub enum ErrorKind {
     Io(String),
     Utf8(String),
     FromUtf8Error(String),
-    Http(String),
     Matchit(String),
+    Http(String),
+    Json(String),
+    Env(String),
 }
 
 impl serde::Serialize for Error {
@@ -38,14 +43,14 @@ impl serde::Serialize for Error {
             Self::Io(_) => ErrorKind::Io(error_message),
             Self::Utf8(_) => ErrorKind::Utf8(error_message),
             Self::FromUtf8Error(_) => ErrorKind::FromUtf8Error(error_message),
-            Self::Http(_) => ErrorKind::Http(error_message),
             Self::Matchit(_) => ErrorKind::Matchit(error_message),
+            Self::Http(_) => ErrorKind::Http(error_message),
+            Self::Json(_) => ErrorKind::Json(error_message),
+            Self::Env(_) => ErrorKind::Env(error_message),
         };
         error_kind.serialize(serializer)
     }
 }
-
-
 
 // impl From<http::Error> for ApiError {
 //     fn from(e: http::Error) -> Self {
@@ -64,4 +69,3 @@ impl serde::Serialize for Error {
 //         ApiError::Error(e.to_string())
 //     }
 // }
-
