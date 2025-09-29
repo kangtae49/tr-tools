@@ -5,7 +5,9 @@ use matchit::{Params, Router};
 use tauri::http::{Request, Response};
 use urlencoding;
 use std::sync::Arc;
-use crate::err::{ApiError, ApiResult};
+use crate::err::{Error};
+use crate::err::Error::{ApiError};
+
 const MAX_FILE_SIZE: u64 = 50 * 1024 * 1024;
 
 // # Example
@@ -29,7 +31,7 @@ const MAX_FILE_SIZE: u64 = 50 * 1024 * 1024;
 
 
 
-pub fn build_router() -> ApiResult<Arc<Router<&'static str>>> {
+pub fn build_router() -> Result<Arc<Router<&'static str>>, Error> {
     let mut router: Router<&str> = Router::new();
 
     router.insert("/file/{path}", "file")?;
@@ -38,7 +40,7 @@ pub fn build_router() -> ApiResult<Arc<Router<&'static str>>> {
 }
 
 
-pub fn route(router: &Router<&str>, req: Request<Vec<u8>>) -> ApiResult<Response<Vec<u8>>> {
+pub fn route(router: &Router<&str>, req: Request<Vec<u8>>) -> Result<Response<Vec<u8>>, Error> {
     let path = req.uri().path();
     println!("path: {:?}", path);
     if let Ok(matched) = router.at(path) {
@@ -53,8 +55,8 @@ pub fn route(router: &Router<&str>, req: Request<Vec<u8>>) -> ApiResult<Response
     }
 }
 
-fn file_get(req: &Request<Vec<u8>>, params: &Params) -> ApiResult<Response<Vec<u8>>> {
-    let enc_path = params.get("path").ok_or(ApiError::Error(String::from("Path Not Found")))?;
+fn file_get(req: &Request<Vec<u8>>, params: &Params) -> Result<Response<Vec<u8>>, Error> {
+    let enc_path = params.get("path").ok_or(ApiError("Not Found".into()))?;
     let dec_path = urlencoding::decode(enc_path)?;
     let path = std::path::Path::new(dec_path.as_ref());
     // let path = std::path::Path::new("C:/Users/kkt/Downloads/mp3/상상_선우정아.mp3");
@@ -104,7 +106,8 @@ fn file_get(req: &Request<Vec<u8>>, params: &Params) -> ApiResult<Response<Vec<u
             .body(buffer)?)
 
     } else {
-        Err(ApiError::Error(format!("Internal Server Error: FILE_SIZE {} (LIMIT {})", file_len, MAX_FILE_SIZE)))
+        Err(ApiError(format!("Internal Server Error: FILE_SIZE {} (LIMIT {})", file_len, MAX_FILE_SIZE)))
+        // Err(Error::Http(format!("Internal Server Error: FILE_SIZE {} (LIMIT {})", file_len, MAX_FILE_SIZE)))
     }
 
 }

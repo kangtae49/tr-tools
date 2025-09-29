@@ -38,3 +38,10 @@ For Android development, run:
 
 ```
 
+```sh
+deno add npm:react-mosaic-componen
+```
+
+```sh
+deno task tauri icon public/tr-tools.svg
+```
