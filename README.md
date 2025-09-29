@@ -45,3 +45,12 @@ deno add npm:react-mosaic-componen
 ```sh
 deno task tauri icon public/tr-tools.svg
 ```
+
+## react downgrade 19 -> 18
+```
+deno remove npm:react npm:react-dom
+deno remove npm:@types/react npm:@types/react-dom 
+deno add npm:react@18.3.1 npm:react-dom@18.3.1
+deno add npm:@types/react@18.3.1 npm:@types/react-dom@18.3.1
+deno install
+```
