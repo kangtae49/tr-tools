@@ -1,5 +1,5 @@
 import "./MusicPlayerView.css"
-import React, {useEffect, useRef} from "react";
+import React, {ChangeEvent, useEffect, useRef} from "react";
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
 import {
   faBookMedical,
@@ -215,6 +215,9 @@ export default function MusicPlayerView() {
       }
     }
   }
+  const changeAllChecked = (e: ChangeEvent<HTMLInputElement>) => {
+    e.target.checked ? setSelectedPlayList(playList) : setSelectedPlayList([]);
+  }
 
   useEffect(() => {
     if (shuffle) {
@@ -329,6 +332,7 @@ export default function MusicPlayerView() {
           </div>
         </div>
         <div className={`row second ${(!paused && playPath) ? 'playing' : ''}`}>
+          <div><input type="checkbox" onChange={changeAllChecked}/></div>
           <div className="title" title={playPath ?? ''}>{getFilename(playPath ?? '')}</div>
           <div className="tm">{formatSeconds(currentTime)}</div>
           <div className="slider">

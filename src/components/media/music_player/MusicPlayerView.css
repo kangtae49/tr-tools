@@ -76,7 +76,7 @@
 }
 .music-player .top .row.second .title {
     flex: 0 0 200px;
-    text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    text-align: start; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .music-player .top .row.second .tm {
     flex: 0 0 50px;
@@ -156,9 +156,9 @@ input[type=range]::-webkit-slider-thumb {
     animation: gradientShift 10s ease infinite;
 }
 @keyframes gradientShift {
-    0%   { background-position: 0% 50%; }
+    0%   { background-position: 0 50%; }
     50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    100% { background-position: 0 50%; }
 }
 
 .badge-wrap{
@@ -185,6 +185,10 @@ input[type=range]::-webkit-slider-thumb {
     box-shadow: 0 1px 2px rgba(0,0,0,0.25);
     pointer-events: none;
     user-select: none;
+}
+
+input[type=checkbox]:focus {
+    outline: none;
 }
 
 .fa-folder { color: var(--icon-color); font-size: var(--icon-font-size); }

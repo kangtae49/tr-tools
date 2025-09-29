@@ -1,4 +1,4 @@
-import React from "react";
+import {ChangeEvent} from "react";
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
 import {
   faCircleXmark,
@@ -20,8 +20,59 @@ export default function MusicPlayListRowView({
   const {removePlayList, playPath, setPlayPath} = useMusicPlayListStore();
   const {
     selectedPlayList, setSelectedPlayList, appendSelectedPlayList, removeSelectedPlayList,
-    selectionBegin, setSelectionBegin,
   } = useSelectedMusicPlayListStore();
+
+
+
+  const clickPlayPath = (path: string) => {
+    window.getSelection()?.removeAllRanges();
+    console.log(path)
+    setSelectedPlayList([]);
+
+    if (paused) {
+      setAutoPlay(true);
+    }
+    setPlayPath(path);
+  }
+
+  const onChangeChecked = (e: ChangeEvent<HTMLInputElement>, path: string) => {
+    const checked = e.target.checked;
+    if (checked) {
+      appendSelectedPlayList([path]);
+    } else {
+      removeSelectedPlayList([path]);
+    }
+  }
+
+  const isPlayPath = playPath == playList[index];
+  const isSelected = selectedPlayList.includes(playList[index]);
+
+  return (
+    <div className={`row ${isSelected ? 'selected': ''}`} style={style}>
+      <div className={`title  ${(!paused && isPlayPath) ? 'playing' : ''}`}
+           title={playList[index]}
+      >
+        <div><input type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => onChangeChecked(e, playList[index])}
+        />
+        </div>
+        {isPlayPath && <div><Icon icon={faMusic}/></div>}
+        <div title={playList[index]} onClick={() => clickPlayPath(playList[index])}>
+          {getFilename(playList[index])}
+        </div>
+      </div>
+      <div
+        onClick={() => removePlayList([playList[index]])}
+      >
+        <Icon icon={faCircleXmark} />
+      </div>
+    </div>
+  );
+}
+
+/*
+onClick={(e) => handleClick(e, playList[index])}
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>, item: string) => {
     e.preventDefault();
@@ -76,34 +127,4 @@ export default function MusicPlayListRowView({
 
   };
 
-  const clickPlayPath = (path: string) => {
-    window.getSelection()?.removeAllRanges();
-    console.log(path)
-    setSelectedPlayList([]);
-
-    if (paused) {
-      setAutoPlay(true);
-    }
-    setPlayPath(path);
-  }
-
-  const isPlayPath = playPath == playList[index];
-  const isSelected = selectedPlayList.includes(playList[index]);
-
-  return (
-    <div className={`row ${isSelected ? 'selected': ''}`} style={style}>
-      <div className={`title  ${(!paused && isPlayPath) ? 'playing' : ''}`} title={playList[index]}
-           onClick={(e) => handleClick(e, playList[index])}
-           onDoubleClick={() => clickPlayPath(playList[index])}
-      >
-        {isPlayPath && <div><Icon icon={faMusic}/></div>}
-        <div>{getFilename(playList[index])}</div>
-      </div>
-      <div
-        onClick={() => removePlayList([playList[index]])}
-      >
-        <Icon icon={faCircleXmark} />
-      </div>
-    </div>
-  );
-}
+ */
