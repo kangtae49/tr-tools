@@ -24,7 +24,6 @@ function AudioView() {
     if (!mediaRef?.current) return;
     changeVolume(volume);
     changeMuted(muted);
-    console.log('autoPlay', autoPlay);
     if (autoPlay) {
       play();
     } else {

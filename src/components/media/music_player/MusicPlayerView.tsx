@@ -20,6 +20,7 @@ import {formatSeconds, getFilename} from "@/components/utils.ts";
 import { open, save } from '@tauri-apps/plugin-dialog';
 // import {invoke} from "@tauri-apps/api/core";
 import {commands} from "@/bindings.ts"
+import toast from "react-hot-toast";
 
 const MUSIC_PLAYER_LATEST_PLAYLIST = 'music-player.playlist.latest.json'
 const MUSIC_PLAYER_SETTING = 'music-player.setting.json'
@@ -77,9 +78,9 @@ export default function MusicPlayerView() {
         const content = JSON.stringify(shuffledPlayList, null, 2);
         commands.appWriteToString(MUSIC_PLAYER_LATEST_PLAYLIST, content).then((result) => {
           if (result.status === 'ok'){
-            console.log("save(latest) success");
+            console.log("Success Saved latest playlist");
           } else {
-            console.log("save(latest) failed");
+            console.log("Fail Saved latest playlist");
           }
         })
       })
@@ -95,11 +96,9 @@ export default function MusicPlayerView() {
     } else {
       shuffledPlayList = natsortPlayList()
     }
-    console.log('playPath', playPath)
     commands.appReadToString(MUSIC_PLAYER_SETTING).then((result) => {
       if (result.status === 'ok'){
         const setting: MusicPlayerSetting = JSON.parse(result.data);
-        console.log(setting)
         setPlayPath(setting.playPath);
         changeCurrentTime(setting.currentTime);
       } else {
@@ -121,9 +120,9 @@ export default function MusicPlayerView() {
           const shuffledContent = JSON.stringify(shuffledPlayList, null, 2);
           commands.appWriteToString(MUSIC_PLAYER_LATEST_PLAYLIST, shuffledContent).then((result) => {
             if (result.status === 'ok'){
-              console.log("save(latest) success");
+              console.log("Success Saved latest playlist");
             } else {
-              console.log("save(latest) failed");
+              console.log("Fail Saved latest playlist");
             }
           })
         }
@@ -140,9 +139,9 @@ export default function MusicPlayerView() {
       const content = JSON.stringify(playList, null, 2);
       commands.writeToString(file, content).then(async (result) => {
         if (result.status === 'ok'){
-          console.log("save success");
+          toast.success("Success save");
         } else {
-          console.log("save failed");
+          toast.error("Fail save");
         }
       })
     })
@@ -161,9 +160,9 @@ export default function MusicPlayerView() {
       if (playPath != null) {
         commands.appWriteToString(MUSIC_PLAYER_SETTING, JSON.stringify({playPath, currentTime})).then((result) => {
           if (result.status === 'ok'){
-            console.log("save(setting) success");
+            console.log("Success save status");
           } else {
-            console.log("save(setting) failed");
+            console.log("Fail save status");
           }
         })
       }
@@ -225,12 +224,10 @@ export default function MusicPlayerView() {
 
   useEffect(() => {
     if (ended) {
-      console.log("ended");
       setEnded(false);
       if (playList.length == 0) {
         return;
       }
-      console.log("repeat", repeat);
       if (repeat === 'repeat_all') {
         let nextPlay = playList[0];
         if (playPath !== null) {

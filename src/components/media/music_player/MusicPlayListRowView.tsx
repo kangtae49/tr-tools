@@ -26,7 +26,6 @@ export default function MusicPlayListRowView({
 
   const clickPlayPath = (path: string) => {
     window.getSelection()?.removeAllRanges();
-    console.log(path)
     setSelectedPlayList([]);
 
     if (paused) {
