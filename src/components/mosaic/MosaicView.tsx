@@ -63,7 +63,15 @@ export function MosaicView() {
   } = useMosaicStore();
 
   useEffect(() => {
-    setMosaicValue("music-player")
+    setMosaicValue({
+      direction: "row",
+      first: "music-player",
+      second: {
+        direction: "column",
+        first: "about",
+        second: "help"
+      }
+    })
   }, [])
 
   return (

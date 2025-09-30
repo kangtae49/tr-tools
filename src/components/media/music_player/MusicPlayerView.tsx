@@ -1,5 +1,5 @@
 import "./MusicPlayerView.css"
-import React, {ChangeEvent, useEffect, useRef} from "react";
+import React, {ChangeEvent, useEffect, useRef, useState} from "react";
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
 import {
   faBookMedical,
@@ -18,19 +18,23 @@ import {useSelectedMusicPlayListStore} from "./selectedMusicPlayListStore.ts";
 import {useAudioStore} from "../mediaStore.ts";
 import {formatSeconds, getFilename} from "@/components/utils.ts";
 import { open, save } from '@tauri-apps/plugin-dialog';
-// import {invoke} from "@tauri-apps/api/core";
 import {commands} from "@/bindings.ts"
 import toast from "react-hot-toast";
+// import {useDroppable} from "@dnd-kit/core";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { listen } from "@tauri-apps/api/event";
 
 const MUSIC_PLAYER_LATEST_PLAYLIST = 'music-player.playlist.latest.json'
 const MUSIC_PLAYER_SETTING = 'music-player.setting.json'
 
 export default function MusicPlayerView() {
+  const [ready, setReady] = useState(false);
+  // const [setting, setSetting] = useState<MusicPlayerSetting | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<ListImperativeAPI>(null);
-
+  // const { setNodeRef } = useDroppable({ id: "music-dropzone" });
   const {
-    playList, appendPlayList, removePlayList, shufflePlayList, natsortPlayList,
+    playList, appendPlayList, removePlayList, shufflePlayList, natsortPlayList, setPlayList,
     playPath, setPlayPath,
     prevPlayPath, nextPlayPath,
     getPrev, getNext,
@@ -43,8 +47,8 @@ export default function MusicPlayerView() {
   } = useSelectedMusicPlayListStore();
   const {
     paused, pause, play, togglePlay,
-    volume, changeVolume,
-    duration, currentTime, changeCurrentTime,
+    volume, setVolume, changeVolume,
+    duration, currentTime, setCurrentTime, changeCurrentTime,
     muted, changeMuted,
     repeat, toggleRepeat,
     shuffle, toggleShuffle,
@@ -74,15 +78,6 @@ export default function MusicPlayerView() {
         if (playPath == null) {
           setPlayPath(shuffledPlayList[0]);
         }
-
-        const content = JSON.stringify(shuffledPlayList, null, 2);
-        commands.appWriteToString(MUSIC_PLAYER_LATEST_PLAYLIST, content).then((result) => {
-          if (result.status === 'ok'){
-            console.log("Success Saved latest playlist");
-          } else {
-            console.log("Fail Saved latest playlist");
-          }
-        })
       })
   }
 
@@ -100,7 +95,11 @@ export default function MusicPlayerView() {
       if (result.status === 'ok'){
         const setting: MusicPlayerSetting = JSON.parse(result.data);
         setPlayPath(setting.playPath);
-        changeCurrentTime(setting.currentTime);
+        setVolume(setting.volume);
+        setCurrentTime(setting.currentTime);
+
+        // changeVolume(setting.volume);
+        // changeCurrentTime(setting.currentTime);
       } else {
         setPlayPath(shuffledPlayList[0]);
       }
@@ -116,15 +115,7 @@ export default function MusicPlayerView() {
       if (file === null) return;
       commands.readToString(file).then(async (result) => {
         if (result.status === 'ok'){
-          const shuffledPlayList = await loadJson(result.data);
-          const shuffledContent = JSON.stringify(shuffledPlayList, null, 2);
-          commands.appWriteToString(MUSIC_PLAYER_LATEST_PLAYLIST, shuffledContent).then((result) => {
-            if (result.status === 'ok'){
-              console.log("Success Saved latest playlist");
-            } else {
-              console.log("Fail Saved latest playlist");
-            }
-          })
+          loadJson(result.data).then();
         }
       })
     })
@@ -149,23 +140,23 @@ export default function MusicPlayerView() {
 
   const clickRemovePlayList = () => {
     if (selectedPlayList.length == 0) { return }
-    removePlayList(selectedPlayList);
+    const newPlayList = removePlayList(selectedPlayList);
     setSelectedPlayList([])
     setSelectionBegin(null)
   }
 
   const clickTogglePlay = async () => {
     setAutoPlay(paused);
-    await togglePlay().then(() => {
-      if (playPath != null) {
-        commands.appWriteToString(MUSIC_PLAYER_SETTING, JSON.stringify({playPath, currentTime})).then((result) => {
-          if (result.status === 'ok'){
-            console.log("Success save status");
-          } else {
-            console.log("Fail save status");
-          }
-        })
-      }
+    togglePlay().then(() => {
+      // if (playPath != null) {
+      //   commands.appWriteToString(MUSIC_PLAYER_SETTING, JSON.stringify({playPath, volume, currentTime}, null, 2)).then((result) => {
+      //     if (result.status === 'ok'){
+      //       console.log("Success save status");
+      //     } else {
+      //       console.log("Fail save status");
+      //     }
+      //   })
+      // }
     });
   }
 
@@ -211,8 +202,32 @@ export default function MusicPlayerView() {
     }
   }
   const changeAllChecked = (e: ChangeEvent<HTMLInputElement>) => {
-    e.target.checked ? setSelectedPlayList(playList) : setSelectedPlayList([]);
+    let newPlayList: string[] = []
+    if (e.target.checked) {
+      newPlayList = [...playList]
+    }
+    setSelectedPlayList(newPlayList)
   }
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    console.log('handleDrop');
+    event.preventDefault();
+    const fileList = event.dataTransfer.files;
+    let files: string[] = [];
+    for (let i = 0; i < fileList.length; i++) {
+      let file = fileList.item(i) as any;
+      if (file !== null) {
+        files.push(file.name);
+      }
+    }
+    console.log(files);
+    if (files.length > 0) {
+      appendPlayList(files);
+    }
+  }
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
 
   useEffect(() => {
     if (shuffle) {
@@ -263,22 +278,130 @@ export default function MusicPlayerView() {
   }, [ended])
 
   useEffect(() => {
+    if (playPath === null) {
+      return;
+    }
+    commands.appWriteToString(MUSIC_PLAYER_SETTING, JSON.stringify({playPath, volume, currentTime}, null, 2)).then((result) => {
+      if (result.status === 'ok'){
+        console.log("Success save status");
+      } else {
+        console.log("Fail save status");
+      }
+    })
+  }, [playPath, currentTime, volume])
+
+  useEffect(() => {
+    if (!ready) return;
+    const content = JSON.stringify(playList, null, 2);
+    commands.appWriteToString(MUSIC_PLAYER_LATEST_PLAYLIST, content).then((result) => {
+      if (result.status === 'ok'){
+        console.log("Success Saved latest playlist");
+      } else {
+        console.log("Fail Saved latest playlist");
+      }
+    })
+  }, [playList])
+
+  useEffect(() => {
     if (listRef?.current !== null) {
       setPlayListRef(listRef.current);
     }
   }, [listRef?.current])
 
+  // useEffect(() => {
+  //   if (containerRef?.current !== null) {
+  //     setNodeRef(containerRef.current)
+  //   }
+  // }, [containerRef?.current])
+
   useEffect(() => {
     containerRef.current?.focus();
     commands.appReadToString(MUSIC_PLAYER_LATEST_PLAYLIST).then((result) => {
       if (result.status === 'ok'){
-        loadJson(result.data).then();
+        loadJson(result.data).then(()=>{
+          setReady(true);
+        });
       }
     })
+
+    // let unlisten: (() => void) | undefined;
+    // const webview = getCurrentWebview();
+    //
+    // webview.onDragDropEvent((event) => {
+    //   console.log("DragDropEvent:", event);
+    // }).then((fn) => (unlisten = fn));
+    //
+    // return () => {
+    //   if (unlisten) unlisten();
+    // };
+
+    // let unlisten: (() => void) | undefined;
+    //
+    // const setupDragDrop = async () => {
+    //   const webview = await getCurrentWebview();
+    //   console.log("!!!!!")
+    //   unlisten = await webview.onDragDropEvent((event) => {
+    //     console.log("hello")
+    //     if (event.payload.type === "over") {
+    //       console.log("User hovering", event.payload.position);
+    //     } else if (event.payload.type === "drop") {
+    //       console.log("User dropped", event.payload.paths); // full path array
+    //     } else {
+    //       console.log("File drop cancelled");
+    //     }
+    //   });
+    // };
+    //
+    // setupDragDrop();
+    // return () => {
+    //   if (unlisten) unlisten();
+    // };
+
+    // let unlistenPromise: Promise<() => void> | null = null;
+    //
+    // const init = async () => {
+    //   const unlisten = await getCurrentWebview().onDragDropEvent((event) => {
+    //     if (event.payload.type === 'over') {
+    //       console.log('User hovering', event.payload.position);
+    //     } else if (event.payload.type === 'drop') {
+    //       console.log('User dropped', event.payload.paths);
+    //       // const paths = event.payload.paths;
+    //       // videoControl.addPlayFiles(paths);
+    //
+    //     } else {
+    //       console.log('File drop cancelled');
+    //     }
+    //   });
+    //   unlistenPromise = Promise.resolve(unlisten);
+    // };
+    //
+    // init().then(() => {});
+    //
+    // // cleanup
+    // return () => {
+    //   if (unlistenPromise) {
+    //     unlistenPromise.then((unlisten) => unlisten());
+    //   }
+    // };
+
+    // const unlisten = listen<string[]>("file-dropped", (event) => {
+    //   console.log("Full paths from Rust:", event.payload);
+    // });
+    //
+    // return () => {
+    //   unlisten.then(fn => fn());
+    // };
+
   }, [])
 
   return (
-    <div className={`widget music-player`} ref={containerRef} onKeyDown={onKeyDownHandler} tabIndex={0}>
+    <div className={`widget music-player`}
+         ref={containerRef}
+         id="music-dropzone"
+         onKeyDown={onKeyDownHandler} tabIndex={0}
+         // onDrop={handleDrop}
+         // onDragOver={handleDragOver}
+    >
       <AudioView />
       <div className="top">
         <div className="row first">

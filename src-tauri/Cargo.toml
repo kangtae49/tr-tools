@@ -31,3 +31,4 @@ tauri-plugin-dialog = "2"
 specta = "2.0.0-rc.22"
 tauri-specta = { version="2.0.0-rc.21", features = ["derive", "typescript", "javascript"] }
 specta-typescript = "0.0.9"
+windows = { version = "0.62.1", features = ["Win32_Storage", "Win32_Storage_FileSystem", "Win32", "Win32_Foundation", "Win32_UI", "Win32_UI_WindowsAndMessaging"] }

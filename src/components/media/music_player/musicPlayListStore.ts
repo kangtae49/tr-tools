@@ -18,7 +18,7 @@ interface MusicPlayListStore {
   setPlayPath: (value: string | null) => void;
 
   appendPlayList: (value: string[]) => void;
-  removePlayList: (value: string[]) => void;
+  removePlayList: (value: string[]) => string [];
   shufflePlayList: () => string [];
   natsortPlayList: () => string [];
   prevPlayPath: () => string | null;
@@ -44,8 +44,9 @@ export const useMusicPlayListStore = create<MusicPlayListStore>((set, get) => ({
     set({ playList: newPlayList})
   },
   removePlayList: (value) => {
-    const newPlayList = get().playList.filter(v => !value.includes(v));
+    const newPlayList = get().playList?.filter(v => !value.includes(v));
     set({ playList: newPlayList})
+    return newPlayList;
   },
   shufflePlayList: () => {
     const arr = [...get().playList];

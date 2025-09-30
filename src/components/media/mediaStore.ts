@@ -19,6 +19,7 @@ interface MediaStore<T extends HTMLMediaElement> {
   shuffle: boolean
   ended: boolean
 
+
   setVolume: (volume: number) => void;
   setDuration: (duration: number) => void;
   setCurrentTime: (currentTime: number) => void;
@@ -111,14 +112,14 @@ export const useAudioStore = createMediaStore<HTMLAudioElement>();
 export const useVideoStore = createMediaStore<HTMLVideoElement>();
 
 // useAudioStore.setState({
-//   // audioOnly: {
-//   //   setAudioBalance: (l, r) => {
-//   //     const el = useAudioStore.getState().mediaRef?.current;
-//   //     if (el) {
-//   //       // AudioContext 같은 로직 적용 가능
-//   //     }
-//   //   },
-//   // },
+//   audioOnly: {
+//     setAudioBalance: (l, r) => {
+//       const el = useAudioStore.getState().mediaRef?.current;
+//       if (el) {
+//         // AudioContext 같은 로직 적용 가능
+//       }
+//     },
+//   },
 // });
 //
 // useVideoStore.setState({

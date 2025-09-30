@@ -3,7 +3,8 @@ mod route;
 mod utils;
 
 use route::router;
-use tauri::{Manager, WindowEvent};
+use tauri::{Event, Listener, Manager, WindowEvent};
+// use tauri::{DragDropEvent};
 use err::Error;
 use specta;
 use tauri_specta::{collect_commands, Builder};
@@ -82,15 +83,62 @@ pub fn run() {
         })
         .setup(|app| {
             let window = app.get_window("main").unwrap();
-            window.on_window_event(move |event| {
-                if let WindowEvent::CloseRequested { api: _, .. } = event {
-                    println!("CloseRequested");
-                    // api.prevent_close();
-                }
-                if let WindowEvent::Destroyed = event {
-                    println!("Destroyed")
+            window.listen("tauri://webview-create", move | event | {
+                println!("hello");
+                match event {
+                    Event { .. } => {
+                    }
                 }
             });
+            window.on_window_event(move |event| {
+                // println!("{:?}", event);
+                match event {
+                    WindowEvent::CloseRequested { api: _, .. } => {
+                        println!("CloseRequested");
+                    }
+                    WindowEvent::Destroyed => {
+                        println!("Destroyed")
+                    }
+                    WindowEvent::Focused(_focus) => {
+                        // println!("Focused {}", focus)
+                    }
+                    WindowEvent::Resized(_size) => {
+                        // println!("Resized {:?}", size)
+                    }
+                    WindowEvent::Moved(_position) => {
+                        // println!("Moved {:?}", position);
+                    }
+                    // WindowEvent::DragDrop(event) => {
+                    //     println!("DragDrop !!!");
+                    //     match event {
+                    //         DragDropEvent::Enter { .. } => {
+                    //             println!("DragDrop Enter");
+                    //         }
+                    //         DragDropEvent::Over { .. } => {
+                    //             println!("DragDrop Over");
+                    //         }
+                    //         DragDropEvent::Drop { .. } => {
+                    //             println!("DragDrop Drop");
+                    //         }
+                    //         DragDropEvent::Leave => {
+                    //             println!("DragDrop Leave");
+                    //         }
+                    //         _ => {
+                    //             println!("DragDrop ...");
+                    //         }
+                    //     }
+                    // }
+                    _ => {
+                        // println!("WindowEvent ...");
+                    }
+                }
+
+
+            });
+            // window.listen("tauri://file-drop", |event| {
+            //     let x = event.payload();
+            //     println!("Dropped files: {}", x);
+            // });
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
@@ -104,3 +152,6 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+
+
