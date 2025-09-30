@@ -39,9 +39,9 @@ pub fn build_router() -> Result<Arc<Router<&'static str>>, Error> {
 
 pub fn route(router: &Router<&str>, req: Request<Vec<u8>>) -> Result<Response<Vec<u8>>, Error> {
     let path = req.uri().path();
-    println!("path: {:?}", path);
+    // println!("path: {:?}", path);
     if let Ok(matched) = router.at(path) {
-        println!("found");
+        // println!("found");
         match (&req.method().as_str(), matched.value) {
             (&"GET", &"file") => file_get(&req, &matched.params),
             _ => Ok(Response::builder()
@@ -49,7 +49,7 @@ pub fn route(router: &Router<&str>, req: Request<Vec<u8>>) -> Result<Response<Ve
                 .body("Method Not Allowed".into())?),
         }
     } else {
-        println!("not found");
+        // println!("not found");
         Ok(Response::builder().status(404).body("Not Found".into())?)
     }
 }

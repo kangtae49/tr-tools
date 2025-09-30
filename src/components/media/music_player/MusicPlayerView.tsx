@@ -18,7 +18,8 @@ import {useSelectedMusicPlayListStore} from "./selectedMusicPlayListStore.ts";
 import {useAudioStore} from "../mediaStore.ts";
 import {formatSeconds, getFilename} from "@/components/utils.ts";
 import { open, save } from '@tauri-apps/plugin-dialog';
-import {invoke} from "@tauri-apps/api/core";
+// import {invoke} from "@tauri-apps/api/core";
+import {commands} from "@/bindings.ts"
 
 const MUSIC_PLAYER_LATEST_PLAYLIST = 'music-player.playlist.latest.json'
 const MUSIC_PLAYER_SETTING = 'music-player.setting.json'
@@ -74,11 +75,12 @@ export default function MusicPlayerView() {
         }
 
         const content = JSON.stringify(shuffledPlayList, null, 2);
-        invoke('app_write_to_string', {
-          subpath: MUSIC_PLAYER_LATEST_PLAYLIST,
-          content: content,
-        }).then(() => {
-          console.log("save(latest) success");
+        commands.appWriteToString(MUSIC_PLAYER_LATEST_PLAYLIST, content).then((result) => {
+          if (result.status === 'ok'){
+            console.log("save(latest) success");
+          } else {
+            console.log("save(latest) failed");
+          }
         })
       })
   }
@@ -94,26 +96,16 @@ export default function MusicPlayerView() {
       shuffledPlayList = natsortPlayList()
     }
     console.log('playPath', playPath)
-
-    invoke('app_read_to_string', {
-      subpath: MUSIC_PLAYER_SETTING
-    }).then((content) => {
-      const setting: MusicPlayerSetting = JSON.parse(content as string);
-      console.log(setting)
-      setPlayPath(setting.playPath);
-      changeCurrentTime(setting.currentTime);
-    }).catch((_e) => {
-      setPlayPath(shuffledPlayList[0]);
+    commands.appReadToString(MUSIC_PLAYER_SETTING).then((result) => {
+      if (result.status === 'ok'){
+        const setting: MusicPlayerSetting = JSON.parse(result.data);
+        console.log(setting)
+        setPlayPath(setting.playPath);
+        changeCurrentTime(setting.currentTime);
+      } else {
+        setPlayPath(shuffledPlayList[0]);
+      }
     })
-    // const settingStr = await window.pywebview.api.read_setting_music_player();
-    // if (settingStr != null) {
-    //   const setting: MusicPlayerSetting = JSON.parse(settingStr);
-    //   console.log(setting)
-    //   setPlayPath(setting.playPath);
-    //   changeCurrentTime(setting.currentTime);
-    // } else if (playPath == null) {
-    //   setPlayPath(shuffledPlayList[0]);
-    // }
 
     return shuffledPlayList;
   }
@@ -122,19 +114,19 @@ export default function MusicPlayerView() {
     open({
       filters: [{name: "OpenAudio Book", extensions: ["json"]}],
     }).then((file) => {
-      if (file === null) return
-      invoke('read_to_string', {
-        fullpath: file,
-      }).then(async (content) => {
-        const shuffledPlayList = await loadJson(content as string);
-        const shuffledContent = JSON.stringify(shuffledPlayList, null, 2);
-
-        invoke('app_write_to_string', {
-          subpath: MUSIC_PLAYER_LATEST_PLAYLIST,
-          content: shuffledContent,
-        }).then(() => {
-          console.log("save(latest) success");
-        })
+      if (file === null) return;
+      commands.readToString(file).then(async (result) => {
+        if (result.status === 'ok'){
+          const shuffledPlayList = await loadJson(result.data);
+          const shuffledContent = JSON.stringify(shuffledPlayList, null, 2);
+          commands.appWriteToString(MUSIC_PLAYER_LATEST_PLAYLIST, shuffledContent).then((result) => {
+            if (result.status === 'ok'){
+              console.log("save(latest) success");
+            } else {
+              console.log("save(latest) failed");
+            }
+          })
+        }
       })
     })
   }
@@ -146,11 +138,12 @@ export default function MusicPlayerView() {
     }).then((file) => {
       if(file === null) return;
       const content = JSON.stringify(playList, null, 2);
-      invoke('write_to_string', {
-        fullpath: file,
-        content: content,
-      }).then(() => {
-        console.log("save success");
+      commands.writeToString(file, content).then(async (result) => {
+        if (result.status === 'ok'){
+          console.log("save success");
+        } else {
+          console.log("save failed");
+        }
       })
     })
   }
@@ -166,9 +159,12 @@ export default function MusicPlayerView() {
     setAutoPlay(paused);
     await togglePlay().then(() => {
       if (playPath != null) {
-        invoke('app_write_to_string', {
-          subpath: MUSIC_PLAYER_SETTING,
-          content: JSON.stringify({playPath, currentTime}),
+        commands.appWriteToString(MUSIC_PLAYER_SETTING, JSON.stringify({playPath, currentTime})).then((result) => {
+          if (result.status === 'ok'){
+            console.log("save(setting) success");
+          } else {
+            console.log("save(setting) failed");
+          }
         })
       }
     });
@@ -277,15 +273,15 @@ export default function MusicPlayerView() {
 
   useEffect(() => {
     containerRef.current?.focus();
-    invoke('app_read_to_string', {
-      subpath: MUSIC_PLAYER_LATEST_PLAYLIST,
-    }).then((content) => {
-      loadJson(content as string).then();
+    commands.appReadToString(MUSIC_PLAYER_LATEST_PLAYLIST).then((result) => {
+      if (result.status === 'ok'){
+        loadJson(result.data).then();
+      }
     })
   }, [])
 
   return (
-    <div className="widget music-player" ref={containerRef} onKeyDown={onKeyDownHandler} tabIndex={0}>
+    <div className={`widget music-player`} ref={containerRef} onKeyDown={onKeyDownHandler} tabIndex={0}>
       <AudioView />
       <div className="top">
         <div className="row first">

@@ -28,5 +28,6 @@ matchit = "0.8.6"
 urlencoding = "2.1.3"
 thiserror = "2.0.16"
 tauri-plugin-dialog = "2"
-
-
+specta = "2.0.0-rc.22"
+tauri-specta = { version="2.0.0-rc.21", features = ["derive", "typescript", "javascript"] }
+specta-typescript = "0.0.9"

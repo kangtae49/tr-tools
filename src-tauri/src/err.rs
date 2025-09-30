@@ -1,62 +1,37 @@
-#[derive(Debug, thiserror::Error)]
+
+use serde::{Serialize, Deserialize};
+use specta::Type;
+use thiserror::Error;
+
+#[derive(Type, Serialize, Deserialize, Error, Debug)]
 pub enum Error {
     #[error("Err {0}")]
     ApiError(String),
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-    #[error(transparent)]
-    Utf8(#[from] std::str::Utf8Error),
-    #[error(transparent)]
-    FromUtf8Error(#[from] std::string::FromUtf8Error),
-    #[error(transparent)]
-    Matchit(#[from] matchit::InsertError),
-    #[error(transparent)]
-    Http(#[from] http::Error),
-    #[error(transparent)]
-    Json(#[from] serde_json::Error),
-    #[error(transparent)]
-    Env(#[from] std::env::VarError),
 }
 
-#[derive(serde::Serialize)]
-#[serde(tag = "kind", content = "message")]
-#[serde(rename_all = "camelCase")]
-pub enum ErrorKind {
-    ApiError(String),
-    Io(String),
-    Utf8(String),
-    FromUtf8Error(String),
-    Matchit(String),
-    Http(String),
-    Json(String),
-    Env(String),
-}
 
-impl serde::Serialize for Error {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::ser::Serializer,
-    {
-        let error_message = self.to_string();
-        let error_kind = match self {
-            Self::ApiError(_) => ErrorKind::ApiError(error_message),
-            Self::Io(_) => ErrorKind::Io(error_message),
-            Self::Utf8(_) => ErrorKind::Utf8(error_message),
-            Self::FromUtf8Error(_) => ErrorKind::FromUtf8Error(error_message),
-            Self::Matchit(_) => ErrorKind::Matchit(error_message),
-            Self::Http(_) => ErrorKind::Http(error_message),
-            Self::Json(_) => ErrorKind::Json(error_message),
-            Self::Env(_) => ErrorKind::Env(error_message),
-        };
-        error_kind.serialize(serializer)
-    }
-}
-
-// impl From<http::Error> for ApiError {
-//     fn from(e: http::Error) -> Self {
-//         ApiError::Error(e.to_string())
-//     }
+// impl From<http::Error> for Error {
+//     fn from(e: http::Error) -> Self { Error::ApiError(e.to_string()) }
 // }
+macro_rules! impl_from_error {
+    ($($t:ty),*) => {
+        $(
+            impl From<$t> for Error {
+                fn from(e: $t) -> Self {
+                    Error::ApiError(e.to_string())
+                }
+            }
+        )*
+    };
+}
+impl_from_error!(
+    http::Error,
+    std::io::Error,
+    serde_json::Error,
+    std::env::VarError,
+    matchit::InsertError,
+    std::string::FromUtf8Error
+);
 
 // impl From<matchit::InsertError> for ApiError {
 //     fn from(e: matchit::InsertError) -> Self {
